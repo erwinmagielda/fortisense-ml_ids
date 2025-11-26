@@ -3,101 +3,112 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# ======== CONFIG ========
-sns.set(style="whitegrid")
-plt.rcParams["figure.autolayout"] = True   # auto-fit for any monitor
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data")
+# Sets a clean and consistent visual style for all plots.
+sns.set_theme(style="whitegrid")
 
-TRAIN_PATH = os.path.join(DATA_DIR, "KDDTrain.csv")
-TEST_PATH = os.path.join(DATA_DIR, "KDDTest.csv")
+# Determines the base directory so the script can reliably locate the dataset folder.
+project_root_directory = os.path.dirname(os.path.dirname(__file__))
+dataset_directory = os.path.join(project_root_directory, "data")
 
-# ======== LOAD DATA ========
-df_train = pd.read_csv(TRAIN_PATH)
-df_test = pd.read_csv(TEST_PATH)
-
-# ======== Helper: maximise matplotlib window ========
-def maximise_window():
-    """Maximise matplotlib window across different backends."""
-    mng = plt.get_current_fig_manager()
-    try:
-        mng.window.state("zoomed")            # Windows TkAgg
-    except:
-        try:
-            mng.window.showMaximized()        # Qt backend
-        except:
-            pass
+training_dataset_path = os.path.join(dataset_directory, "KDDTrain.csv")
+testing_dataset_path = os.path.join(dataset_directory, "KDDTest.csv")
 
 # ============================================================
-# PART 1 — REQUIRED EDA OUTPUTS ONLY
+# PART 1 — EXPLORATORY DATA ANALYSIS (EDA)
 # ============================================================
 
-# === 1. Dataset shapes ===
+# Loads both the training and testing datasets into memory.
+training_dataframe = pd.read_csv(training_dataset_path)
+testing_dataframe = pd.read_csv(testing_dataset_path)
+
+# ------------------------------------------------------------
+# Dataset Shapes
+# ------------------------------------------------------------
 print("=== Dataset Shapes ===")
-print("Training dataset shape:", df_train.shape)
-print("Testing dataset shape: ", df_test.shape)
+print("Training dataset shape:", training_dataframe.shape)
+print("Testing dataset shape: ", testing_dataframe.shape)
 print()
 
-# === 2. Summary Statistics ===
+# ------------------------------------------------------------
+# Summary Statistics
+# ------------------------------------------------------------
+# Removes the attack_type column because it contains strings and should not be included in numeric statistics.
+numeric_training_dataframe = training_dataframe.drop(columns=["attack_type"])
+
 print("=== Summary Statistics (Training Set) ===")
-# Exclude non-numerical columns
-df_numeric = df_train.drop(columns=["attack_type"])
-print(df_numeric.describe())
+print(numeric_training_dataframe.describe())
 print()
 
-# === 3. Percentage distribution of normal vs attack ===
+# ------------------------------------------------------------
+# Label Distribution (Normal vs Attack)
+# ------------------------------------------------------------
+label_percentage_distribution = (
+    training_dataframe["label"].value_counts(normalize=True) * 100
+)
+
 print("=== Percentage Distribution of Normal vs Attack (Training Set) ===")
-label_dist = df_train["label"].value_counts(normalize=True) * 100
-print(label_dist.rename("percentage"))
+print(label_percentage_distribution.rename("percentage"))
 print()
 
-# === 4. Bar chart — normal vs attack (train + test) ===
-label_counts_train = df_train["label"].value_counts().reset_index()
-label_counts_train.columns = ["label", "count"]
-label_counts_train["dataset"] = "Train"
+# ------------------------------------------------------------
+# Bar Chart – Normal vs Attack (Train vs Test)
+# ------------------------------------------------------------
 
-label_counts_test = df_test["label"].value_counts().reset_index()
-label_counts_test.columns = ["label", "count"]
-label_counts_test["dataset"] = "Test"
+training_label_counts = training_dataframe["label"].value_counts().reset_index()
+training_label_counts.columns = ["label", "count"]
+training_label_counts["dataset"] = "Training"
 
-combined_counts = pd.concat([label_counts_train, label_counts_test])
+testing_label_counts = testing_dataframe["label"].value_counts().reset_index()
+testing_label_counts.columns = ["label", "count"]
+testing_label_counts["dataset"] = "Testing"
 
-plt.figure()
+combined_label_counts = pd.concat([training_label_counts, testing_label_counts])
+
+plt.figure(figsize=(8, 6))
 sns.barplot(
-    data=combined_counts,
+    data=combined_label_counts,
     x="dataset",
     y="count",
     hue="label",
 )
-plt.title("Normal vs Attack Distribution (Train vs Test)")
-
-maximise_window()
+plt.title("Normal vs Attack Distribution in Training and Testing Datasets")
+plt.tight_layout()
 plt.show()
 
-# === 5. Correlation heatmap (numeric only) ===
-plt.figure()
-corr_matrix = df_numeric.corr()
-sns.heatmap(corr_matrix, cmap="coolwarm", linewidths=0.3)
-plt.title("Feature Correlation Heatmap (Numeric Features Only)")
+# ------------------------------------------------------------
+# Correlation Heatmap (Numeric Features Only)
+# ------------------------------------------------------------
+feature_correlation_matrix = numeric_training_dataframe.corr()
 
-maximise_window()
+plt.figure(figsize=(12, 8))
+sns.heatmap(
+    feature_correlation_matrix,
+    cmap="coolwarm",
+    linewidths=0.3,
+)
+plt.title("Correlation Heatmap of Numerical Features (Training Dataset)")
+plt.tight_layout()
 plt.show()
 
-# === 6. Full attack type distribution (required by tutor) ===
-attack_counts = df_train["attack_type"].value_counts()
+# ------------------------------------------------------------
+# Attack Type Distribution (All Types)
+# ------------------------------------------------------------
 
-plt.figure()
+attack_type_frequencies = (
+    training_dataframe["attack_type"].value_counts()
+)
+
+plt.figure(figsize=(14, 6))
 sns.barplot(
-    x=attack_counts.index,
-    y=attack_counts.values,
-    color="steelblue"
+    x=attack_type_frequencies.index,
+    y=attack_type_frequencies.values,
+    color="steelblue",
 )
 plt.xticks(rotation=90)
-plt.title("Attack Type Distribution (Full Dataset)")
-plt.ylabel("Count")
+plt.title("Distribution of All Attack Types (Training Dataset)")
 plt.xlabel("Attack Type")
-
-maximise_window()
+plt.ylabel("Frequency")
+plt.tight_layout()
 plt.show()
 
 print("=== EDA completed successfully ===")

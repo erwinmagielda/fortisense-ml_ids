@@ -1,5 +1,6 @@
 import os
 
+import joblib
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
@@ -18,11 +19,15 @@ from sklearn.svm import LinearSVC
 #   - Split into features and labels
 #   - Train both models
 #   - Evaluate using accuracy, precision, recall, F1
-#   - Print comparison summary
+#   - Save models, scaler and feature list to the models directory
+#   - Expose metric dictionaries for Part 4 comparison
 # ============================================================
 
 project_root_directory = os.path.dirname(os.path.dirname(__file__))
 dataset_directory = os.path.join(project_root_directory, "data")
+model_directory = os.path.join(project_root_directory, "models")
+
+os.makedirs(model_directory, exist_ok=True)
 
 training_dataset_path = os.path.join(dataset_directory, "KDDTrain.csv")
 testing_dataset_path = os.path.join(dataset_directory, "KDDTest.csv")
@@ -149,4 +154,30 @@ print(
 )
 print()
 
-print("[✓] FortiSense ML - Model training and evaluation completed")
+# ------------------------------------------------------------
+# 5. Save models, scaler and feature list
+# ------------------------------------------------------------
+
+print("[*] Saving trained models, scaler and feature list to disk...")
+
+random_forest_model_path = os.path.join(model_directory, "fortisense_random_forest.pkl")
+linear_svm_model_path = os.path.join(model_directory, "fortisense_linear_svm.pkl")
+feature_scaler_path = os.path.join(model_directory, "fortisense_feature_scaler.pkl")
+feature_columns_path = os.path.join(model_directory, "fortisense_feature_columns.pkl")
+
+joblib.dump(random_forest_classifier, random_forest_model_path)
+joblib.dump(linear_svm_classifier, linear_svm_model_path)
+joblib.dump(feature_scaler, feature_scaler_path)
+joblib.dump(feature_column_names, feature_columns_path)
+
+print(f"[+] Random Forest model saved to : {random_forest_model_path}")
+print(f"[+] Linear SVM model saved to   : {linear_svm_model_path}")
+print(f"[+] Feature scaler saved to     : {feature_scaler_path}")
+print(f"[+] Feature column list saved to: {feature_columns_path}")
+print()
+
+# Expose metric dictionaries for Part 4 comparison
+rf_metrics = random_forest_metrics
+svm_metrics = linear_svm_metrics
+
+print("[✓] FortiSense ML - Model training, evaluation and saving completed")

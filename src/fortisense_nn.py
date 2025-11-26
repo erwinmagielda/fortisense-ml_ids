@@ -18,6 +18,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 #   - Train on CPU or GPU
 #   - Evaluate accuracy, precision, recall, F1
 #   - Save trained model for later inference
+#   - Expose metric dictionary for Part 4 comparison
 # ============================================================
 
 computation_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -57,9 +58,9 @@ testing_features = testing_dataframe[feature_column_names].values
 training_labels = training_dataframe["label"].values
 testing_labels = testing_dataframe["label"].values
 
-print(f"[+] Total features:      {len(feature_column_names)}")
-print(f"[+] Training samples:    {training_features.shape[0]}")
-print(f"[+] Testing samples:     {testing_features.shape[0]}")
+print(f"[+] Total features:   {len(feature_column_names)}")
+print(f"[+] Training samples: {training_features.shape[0]}")
+print(f"[+] Testing samples:  {testing_features.shape[0]}")
 print()
 
 print("[*] Applying feature scaling for neural network input...")
@@ -161,6 +162,15 @@ print(f"Precision: {precision_value:.4f}")
 print(f"Recall   : {recall_value:.4f}")
 print(f"F1 score : {f1_value:.4f}")
 print()
+
+# Expose metrics for Part 4 comparison
+nn_metrics = {
+    "model": "Neural Network",
+    "accuracy": accuracy_value,
+    "precision": precision_value,
+    "recall": recall_value,
+    "f1_score": f1_value,
+}
 
 # ------------------------------------------------------------
 # 6. Save trained model

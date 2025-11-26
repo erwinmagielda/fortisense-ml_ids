@@ -1,43 +1,47 @@
-"""
-FortiSense – Part 4: Model Comparison Across ML and Neural Network Models
-"""
-
 import pandas as pd
 
-# Import saved metrics from ML and NN parts
 from fortisense_ml import rf_metrics, svm_metrics
-from fortisense_nn import nn_metrics  # you'll expose nn_metrics in your nn module
+from fortisense_nn import nn_metrics
 
-print("\n=== FortiSense – Model Comparison ===")
+# ============================================================
+# FortiSense - Part 4: Model Comparison and Analysis
+#
+# This script assumes:
+#   - fortisense_ml.py has been run at least once
+#   - fortisense_nn.py has been run at least once
+#
+# It imports the metric dictionaries exposed by those modules
+# and prints a single comparison table for the report.
+# ============================================================
 
-# Create comparison dataframe
-comparison_df = pd.DataFrame([
-    {
-        "model": "Random Forest",
-        "accuracy": rf_metrics["accuracy"],
-        "precision": rf_metrics["precision"],
-        "recall": rf_metrics["recall"],
-        "f1": rf_metrics["f1"],
-    },
-    {
-        "model": "Linear SVM",
-        "accuracy": svm_metrics["accuracy"],
-        "precision": svm_metrics["precision"],
-        "recall": svm_metrics["recall"],
-        "f1": svm_metrics["f1"],
-    },
-    {
-        "model": "Neural Network",
-        "accuracy": nn_metrics["accuracy"],
-        "precision": nn_metrics["precision"],
-        "recall": nn_metrics["recall"],
-        "f1": nn_metrics["f1"],
-    }
-])
+def main():
+    print("[*] FortiSense - Collecting model metrics for comparison...")
 
-print("\n=== Full Model Comparison Table ===\n")
-print(comparison_df)
+    comparison_dataframe = pd.DataFrame(
+        [
+            rf_metrics,
+            svm_metrics,
+            nn_metrics,
+        ]
+    )
 
-print("\n=== Best Model (by F1-score) ===")
-best = comparison_df.sort_values("f1", ascending=False).iloc[0]
-print(best)
+    print("\n=== FortiSense - Model Comparison (Test Set) ===\n")
+    print(
+        comparison_dataframe[
+            ["model", "accuracy", "precision", "recall", "f1_score"]
+        ]
+    )
+
+    best_model_row = comparison_dataframe.sort_values(
+        "f1_score", ascending=False
+    ).iloc[0]
+
+    print("\n=== Best Performing Model (by F1 score) ===")
+    print(best_model_row)
+    print()
+
+    print("[✓] FortiSense - Model comparison completed")
+
+
+if __name__ == "__main__":
+    main()
